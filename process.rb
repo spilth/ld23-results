@@ -1,4 +1,5 @@
 require 'csv'
+require 'gruff'
 
 file = "results.csv"
 
@@ -38,13 +39,14 @@ synonym_map = {
   "Linux Multi Media Studio" => ["Linux MultiMedia Studio"],
   "LSDJ" => ["LSDJ for Gameboy"],
   "Modplug" => ["Modplug Tracker"],
-  "WolframTones" => ["Wolfram tones", "WolframTunes"]
+  "WolframTones" => ["Wolfram tones", "WolframTunes"],
+  "ScreenNinja" => ["screen ninja"]
 }
 
 $replacements = {}
 synonym_map.each_pair do |key, synonyms|
   synonyms.each do |synonym|
-    $replacements[synonym] = key
+    $replacements[synonym.downcase] = key.downcase
   end
 end
 
@@ -90,16 +92,22 @@ CSV.foreach(file, {:headers => true}) do |row|
   entries << entry
 end
 
-#puts "Entries:"
-#puts entries
-
 count_columns.each do |key|
+  g = Gruff::SideBar.new(1024)
+  g.hide_legend = true
+  g.title = key
+  g.x_axis_label = "Count"
+  g.y_axis_label = "Tool"
   puts "## #{key}"
   sorted = answers[key.to_sym].sort_by {|key, value| value}
   sorted.reverse.each do |tuple|
     puts "- #{tuple[0]}: #{tuple[1]}"
+    g.data(tuple[0], tuple[1])
   end
   puts
+
+  g.labels = {0 => "LD23", 1 => "foo"}
+  g.write("#{key}.png")
 end
 
 
