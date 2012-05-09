@@ -3,10 +3,36 @@ require 'gruff'
 
 file = "results.csv"
 
-columns = %w(date languages engine library image_editor sound_editor username title entry_url completed music_editor level_editor timelapse_tool operating_system model_editor timelapse_url postmortem_url valid)
+# true = countable, false = don't count
+column_configuration = {
+  :date => false,
+  :languages => true,
+  :engine => true,
+  :library => true,
+  :image_editor => true,
+  :sound_editor => true,
+  :username => false,
+  :title => false,
+  :entry_url => false,
+  :completed => false,
+  :music_editor => true,
+  :level_editor => true,
+  :timelapse_tool => true,
+  :operating_system => true,
+  :model_editor => true,
+  :timelapse_url => false,
+  :postmortem_url => false,
+  :valid => false
+}
 
-count_columns = %w(languages engine library image_editor sound_editor music_editor level_editor timelapse_tool operating_system model_editor)
+columns = column_configuration.keys.map {|key| key.to_s}
+count_columns = column_configuration.select {|key, value| value}.keys.map {|key| key.to_s}
 
+# TODO: Externalize this into a simple data file? YAML?
+# actionscript:
+#  - as3
+#  - actionscript 3
+#
 synonym_map = {
   "actionscript" => ["as3", "actionscript 3", "action script", "actionscript 3.0", "actionscript3", "flash/flexsdk", "flash / actionscript 3", "actionscript3 (flash)", "action script 3", "as3 - using flashdevelop ide", "flash", "Flash/FlexSDK"],
   "javascript" => ["javascript/html", "javascript (unityscript)", "javascrip", "java/javascript", "unityscript (javascript)", "unityscript"],
@@ -43,6 +69,7 @@ synonym_map = {
   "ScreenNinja" => ["screen ninja"]
 }
 
+# TODO: Avoid using this global
 $replacements = {}
 synonym_map.each_pair do |key, synonyms|
   synonyms.each do |synonym|
@@ -93,7 +120,7 @@ CSV.foreach(file, {:headers => true}) do |row|
 end
 
 count_columns.each do |key|
-  g = Gruff::SideBar.new(1024)
+  g = Gruff::Bar.new(1280)
   g.hide_legend = true
   g.title = key
   g.x_axis_label = "Count"
@@ -105,10 +132,6 @@ count_columns.each do |key|
     g.data(tuple[0], tuple[1])
   end
   puts
-
-  g.labels = {0 => "LD23", 1 => "foo"}
   g.write("#{key}.png")
 end
-
-
 
