@@ -31,11 +31,10 @@ count_columns = column_configuration.select {|key, value| value}.keys.map {|key|
 
 synonym_map = YAML.load_file("synonyms.yml")
 
-# TODO: Avoid using this global
-$replacements = {}
+replacements = {}
 synonym_map.each_pair do |key, synonyms|
   synonyms.each do |synonym|
-    $replacements[synonym.downcase] = key.downcase
+    replacements[synonym.downcase] = key.downcase
   end
 end
 
@@ -67,10 +66,15 @@ CSV.foreach(file, {:headers => true}) do |row|
     values = value.split(",")
     values.each {|value| value.strip!}
     values.each {|value| value.downcase!}
-    values.each {|value| value = get_real_value(value)}
+    values.each do |value|
+      if replacements.has_key?(value)
+        value = replacements[value]
+      else
+        value = value
+      end
+    end
     entry[name] = values
     values.each do |value|
-      value = get_real_value(value)
       if !answers[name][value].nil?
         answers[name][value] += 1
       else
