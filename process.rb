@@ -28,6 +28,18 @@ column_configuration = {
 
 columns = column_configuration.keys.map {|key| key.to_s}
 count_columns = column_configuration.select {|key, value| value}.keys.map {|key| key.to_s}
+column_names = {}
+
+columns.each_with_index do |name, index|
+  column_names[index] = name.to_sym
+end
+
+answers = {}
+column_names.each do |index, name|
+  answers[name] = {}
+end
+
+# Synonyms
 
 synonym_map = YAML.load_file("synonyms.yml")
 
@@ -36,27 +48,6 @@ synonym_map.each_pair do |key, synonyms|
   synonyms.each do |synonym|
     replacements[synonym.downcase] = key.downcase
   end
-end
-
-def get_real_value(value)
-  if $replacements.has_key?(value)
-    value = $replacements[value]
-  else
-    value = value
-  end
-end
-
-column_names = {}
-
-columns.each_with_index do |name, index|
-  column_names[index] = name.to_sym
-end
-
-entries = []
-answers = {}
-
-column_names.each do |index, name|
-  answers[name] = {}
 end
 
 CSV.foreach(file, {:headers => true}) do |row|
@@ -72,9 +63,7 @@ CSV.foreach(file, {:headers => true}) do |row|
       else
         value = value
       end
-    end
-    entry[name] = values
-    values.each do |value|
+      
       if !answers[name][value].nil?
         answers[name][value] += 1
       else
@@ -82,7 +71,6 @@ CSV.foreach(file, {:headers => true}) do |row|
       end
     end
   end
-  entries << entry
 end
 
 count_columns.each do |key|
